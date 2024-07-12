@@ -29,7 +29,15 @@ export async function createTrip(app: FastifyInstance) {
 			data: {
 				destination,
 				starts_at,
-				ends_at
+				ends_at,
+				participants: {
+					create: {
+						name: owner_name,
+						email: owner_email,
+						is_owner: true,
+						is_confirmed: true
+					}
+				}
 			}
 		});
 
