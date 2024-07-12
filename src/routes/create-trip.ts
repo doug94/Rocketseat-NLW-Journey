@@ -1,5 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import nodemailer from "nodemailer";
 import "dayjs/locale/pt-br";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -59,7 +60,7 @@ export async function createTrip(app: FastifyInstance) {
 
 		const mail = await getMailClient();
 
-		await mail.sendMail({
+		const message = await mail.sendMail({
 			from: {
 				name: 'Equipe Planner',
 				address: 'oi@plann.er'
@@ -75,12 +76,14 @@ export async function createTrip(app: FastifyInstance) {
   			<br>
   			<p>Para confirmar a sua viagem, clique no link abaixo:</p>
   			<br>
-  			<p><a href="${confirmationLink}">Confirmar viagem</a></p>
+  			<p><a href="${confirmationLink	}">Confirmar viagem</a></p>
   			<br>
   			<p>Caso você não saiba do que se trata esse email, apenas ignore-o.</p>
 			</div>
 			`.trim()
 		});
+
+		console.log(nodemailer.getTestMessageUrl(message));
 
 		return { tripId: trip.id };
 	});
