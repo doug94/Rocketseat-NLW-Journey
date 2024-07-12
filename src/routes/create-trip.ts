@@ -1,9 +1,14 @@
 import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import "dayjs/locale/pt-br";
 import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { getMailClient } from "../lib/mail";
+
+dayjs.locale("pt-br");
+dayjs.extend(localizedFormat);
 
 export async function createTrip(app: FastifyInstance) {
 	app.withTypeProvider<ZodTypeProvider>().post('/trips', {
@@ -25,7 +30,7 @@ export async function createTrip(app: FastifyInstance) {
 
 		if (dayjs(ends_at).isBefore(starts_at))
 			throw new Error('Invalid trip end date');
-		
+
 		const trip = await prisma.trip.create({
 			data: {
 				destination,
@@ -40,12 +45,17 @@ export async function createTrip(app: FastifyInstance) {
 								is_owner: true,
 								is_confirmed: true
 							},
-							...emails_to_invite.map((email) => { return { email }})
+							...emails_to_invite.map((email) => { return { email } })
 						]
 					}
 				}
 			}
 		});
+
+		const formattedStartDate = dayjs(starts_at).format('LL');
+		const formattedEndDate = dayjs(ends_at).format('LL');
+
+		const confirmationLink = `http://localhost:3333/trips/${trip.id}/confirm`;
 
 		const mail = await getMailClient();
 
@@ -58,8 +68,18 @@ export async function createTrip(app: FastifyInstance) {
 				name: owner_name,
 				address: owner_email
 			},
-			subject: 'Testando envio de e-mail',
-			html: '<p>Teste do envio de e-mail</p>'
+			subject: `Confirme sua viagem para ${destination}`,
+			html: `
+			<div style="font-family: sans-serif; font-size: 16px; line-height: 1.6;">
+  			<p>Você solicitou a criação de uma viagem para <strong>${destination}</strong> nas datas de <strong>${formattedStartDate}</strong> até <strong>${formattedEndDate}</strong>.</p>
+  			<br>
+  			<p>Para confirmar a sua viagem, clique no link abaixo:</p>
+  			<br>
+  			<p><a href="${confirmationLink}">Confirmar viagem</a></p>
+  			<br>
+  			<p>Caso você não saiba do que se trata esse email, apenas ignore-o.</p>
+			</div>
+			`.trim()
 		});
 
 		return { tripId: trip.id };
