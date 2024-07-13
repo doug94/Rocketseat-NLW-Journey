@@ -2,9 +2,6 @@ import type { FastifyInstance } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { dayjs } from "../lib/dayjs";
-import { getMailClient } from "../lib/mail";
-import nodemailer from "nodemailer";
 
 export async function confirmParticipants(app: FastifyInstance) {
   app.withTypeProvider<ZodTypeProvider>().get(
