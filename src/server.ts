@@ -13,12 +13,15 @@ import { createInvite } from "./routes/create-invite";
 import { updateTrip } from "./routes/update-trip";
 import { getTripDetails } from "./routes/get-trip-details";
 import { getParticipant } from "./routes/get-participant";
+import { errorHandler } from "./error-handler";
 
 const app = fastify();
 
 app.register(cors, {
   origin: 'localhost:3000' // Front-end address  
 })
+
+app.setErrorHandler(errorHandler);
 
 app.setValidatorCompiler(validatorCompiler);
 app.setSerializerCompiler(serializerCompiler);
